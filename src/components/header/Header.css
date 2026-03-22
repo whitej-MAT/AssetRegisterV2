@@ -1,0 +1,86 @@
+.Header {
+    width: 100%;
+    display: flex;
+    position: fixed;
+    min-height: 60px;
+    height: 100px;
+    background-color: #8c2c24;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    font-family: monospace;
+    color: white;
+    font-weight: bold;
+    margin-bottom:5px;
+}
+
+.LogoAndTitle {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    letter-spacing: 7px;
+    display: flex;
+    font-size: 1rem;
+    flex-direction: column;
+    align-items: center;
+}
+
+.Logo {
+    width: 190px;
+}
+
+.InfoBox {
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+}
+
+/* Site selector dropdown styling */
+.SiteSelector {
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: white;
+    color: #8c2c24;
+    letter-spacing: 3px;
+    /* Add a subtle shadow */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+    /* Smooth transition */
+    transition: background-color 0.3s ease;
+}
+
+.SiteSelector:hover,
+.SiteSelector:focus {
+    background-color: #f8f8f8;
+    outline: none;
+}
+
+.InfoTitle {
+    letter-spacing: 4px;
+    padding-bottom: 2px;
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+
+.InfoSubtitle {
+    letter-spacing: 2px;
+    padding-bottom: 10px;
+    font-size: 0.8rem;
+    font-family: 'Trebuchet MS', sans-serif;
+}
+
+.SignOutButton {
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    color: #8c2c24;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+}

@@ -1,0 +1,129 @@
+.BodyTitle {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 20px;
+  background-color: #8c2c24;
+  color: white;
+  font-family: 'Trebuchet MS', sans-serif;
+  font-weight: bold;
+  width: 100%;
+  max-width: 1400px;
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+  transition: 0.5s;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.TitleHeading {
+  margin-right: 10px;
+  white-space: nowrap;
+}
+.ScrollableTable tr.row-selected td {
+  background: #ffe2df;
+}
+
+.TitleLayout,
+.Search {
+  background-color: #8c2c24;
+  color: white;
+  border: none;
+  font-size: 1rem;
+  height: 40px;
+  width: 200px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+.Search {
+  border-bottom: 2px solid white;
+}
+
+.AddItemButton {
+  background-color: white;
+  color: #8c2c24;
+  border: 2px solid white;
+  padding: 10px 15px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+}
+
+.AddItemButton:hover,
+.AddItemButton:focus-visible {
+  background-color: #8c2c24;
+  color: white;
+  outline: none;
+}
+
+::placeholder {
+  color: white;
+}
+
+.TableWrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+.ScrollableTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+}
+
+.ScrollableTable th,
+.ScrollableTable td {
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  padding: 10px;
+  border-bottom: 1px solid #f6f7f9;
+  text-align: left;
+}
+
+.ScrollableTable th {
+  background-color: #8c2c24;
+  color: white;
+}
+
+.ScrollableTable tr:nth-of-type(2n) {
+  background-color: #f6f7f9;
+}
+
+.ScrollableTable tr:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 2rem;
+  font-weight: bold;
+  color: #8c2c24;
+}
+
+.error-text {
+  text-align: center;
+  color: red;
+  font-weight: bold;
+  padding: 1rem;
+}
+
+.BodyTitle,
+.TableWrapper {
+  width: 100%;
+  max-width: 1550px; /* keeps layout tight on ultra-wide monitors */
+  min-width: 900px;  /* ensures layout doesn’t collapse */
+  margin: 5px auto;
+}
+@media (max-width: 1024px) {
+  .BodyTitle {
+    flex-wrap: wrap;
+  }
+}

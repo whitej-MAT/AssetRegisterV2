@@ -1,0 +1,21 @@
+.TitleRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.TitleRow button {
+  position: absolute;
+  right: 1rem;
+  background-color: #8c2c24;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+.TitleRow button:hover {
+  background-color: #7f1d1b;
+}

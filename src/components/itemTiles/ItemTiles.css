@@ -1,0 +1,93 @@
+/* Smooth expanding wrapper */
+.TilesOuter {
+  overflow: hidden;
+  transition: height 0.4s ease;
+}
+
+/* Inner flex layout */
+.TilesInner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px auto;
+  max-width: 1600px;
+  padding-bottom: 20px;
+}
+
+/* Small button header */
+.TileHeader {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 1550px;
+  margin: 5px auto 0;
+  padding: 0 10px;
+}
+.Tile.specialTile {
+  background: linear-gradient(145deg, #8c2c24, #b83b32);
+  color: white;
+  border-color: #8c2c24;
+}
+
+.Tile.specialTile:hover {
+  filter: brightness(1.1);
+}
+
+.Tile.specialTile.active {
+  box-shadow: 0 6px 14px rgba(140, 44, 36, 0.5);
+}
+
+
+
+.ShowAllButton {
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid #d6d9de;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ShowAllButton:hover {
+  border-color: #8c2c24;
+}
+
+.ShowAllButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tile layout */
+.Tile {
+  flex: 0 0 250px;   /* fixed width */
+  max-width: 250px;
+  min-width: 250px;
+  height: 50px;
+
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 2px solid #d6d9de;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #f8f9fb, #f0f1f3);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+
+/* Active tile (selected) */
+.Tile.active {
+  border-color: #8c2c24;
+  box-shadow: 0 6px 14px rgba(140, 44, 36, 0.25);
+}

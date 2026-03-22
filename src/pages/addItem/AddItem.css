@@ -1,0 +1,27 @@
+.AddItemButtons {
+  width: 50%;
+  display: block;
+  margin: 0 auto 5px auto;
+  padding: 12px 10px;
+   letter-spacing: 1px;
+font-size: 1.1rem;
+padding: 10px;
+width: 50%;
+border-radius: 10px;
+border-style: solid;
+border-width: 2px;
+margin-bottom: 5px;
+background-color: #8c2c24;
+color: white;
+cursor: pointer;
+}
+.AddItemButtons:hover {
+  background-color: #a33b32; /* Slightly lighter on hover */
+  color: white;
+}
+
+.AddItemButtons:last-of-type {
+  border-color: #8c2c24;
+  background-color: #f6f7f9;
+color: #040404;
+}

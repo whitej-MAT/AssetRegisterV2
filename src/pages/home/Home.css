@@ -1,0 +1,13 @@
+.Home {
+  display: flex;
+  flex-direction: column;
+  height: auto;       /* changed from 100vh */
+  overflow: auto;     /* or remove entirely */
+}
+
+.ItemTilesWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: visible;  /* or remove entirely */
+}

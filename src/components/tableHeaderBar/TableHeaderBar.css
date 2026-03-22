@@ -1,0 +1,119 @@
+.HeaderBar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 15px;
+
+  padding: 10px 20px;
+  background-color: #8c2c24;
+  color: white;
+
+  font-family: "Trebuchet MS", sans-serif;
+  font-weight: bold;
+
+  width: 100%;
+  max-width: 1750px;
+  min-width: 900px;
+  margin: 10px auto 5px;
+
+  border-radius: 10px;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+.HeaderTitle {
+  font-size: 1.4rem;
+  margin-right: 10px;
+}
+
+
+.HeaderSelect,
+.HeaderInput {
+  background-color: #8c2c24;
+  color: white;
+  border: none;
+
+  font-size: 1.1rem;
+  height: 40px;
+  width: 150px;
+
+  padding: 0 2px;
+  box-sizing: border-box;
+}
+.RowCountBadge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.HeaderInput {
+  border-bottom: 2px solid white;
+}
+
+.HeaderInput::placeholder {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.HeaderButton {
+  background-color: white;
+  color: #8c2c24;
+  border: 2px solid white;
+
+  padding: 10px 15px;
+  font-weight: bold;
+  border-radius: 8px;
+
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+}
+
+.HeaderButton:hover,
+.HeaderButton:focus-visible {
+  background-color: #8c2c24;
+  color: white;
+  outline: none;
+}
+
+@media (max-width: 1024px) {
+  .HeaderBar {
+    flex-wrap: wrap;
+  }
+}
+/* ---------- Skeleton styles ---------- */
+@keyframes shimmer {
+  0% { opacity: 0.55; }
+  50% { opacity: 0.85; }
+  100% { opacity: 0.55; }
+}
+
+.SkeletonTitle,
+.SkeletonControl,
+.SkeletonButton {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.22);
+  animation: shimmer 1.1s ease-in-out infinite;
+}
+
+.SkeletonTitle {
+  width: 160px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+.SkeletonControl {
+  width: 200px;
+  height: 40px;
+  flex: 0 0 auto;
+}
+
+.SkeletonButton {
+  width: 110px;
+  height: 40px;
+  flex: 0 0 auto;
+}
