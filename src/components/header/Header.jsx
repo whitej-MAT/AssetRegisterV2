@@ -17,12 +17,12 @@ function Header() {
 const signOutRedirect = async () => {
   await auth.removeUser();
 
-  const clientId = "1mam54gmn5p75g2u9fafcts8sm";
-  const cognitoDomain = "https://eu-west-2opm5uemul.auth.eu-west-2.amazoncognito.com";
-
   const logoutUri = import.meta.env.VITE_COGNITO_LOGOUT_URI;
+  const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
+  const domain = import.meta.env.VITE_COGNITO_DOMAIN;
 
-  window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+  window.location.href =
+    `https://${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
 };
 
 

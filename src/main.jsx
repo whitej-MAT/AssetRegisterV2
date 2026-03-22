@@ -10,8 +10,9 @@ import { ToastContainer } from "react-toastify";
 
 const cognitoAuthConfig = {
   authority: "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_oPM5UEmul",
-  client_id: "1mam54gmn5p75g2u9fafcts8sm",
-  redirect_uri: "http://localhost:5173",
+  client_id: import.meta.env.VITE_COGNITO_CLIENT_ID,
+  redirect_uri: import.meta.env.VITE_COGNITO_REDIRECT_URI,
+  post_logout_redirect_uri: import.meta.env.VITE_COGNITO_LOGOUT_URI,
   response_type: "code",
   scope: "email openid phone",
 };
