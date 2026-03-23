@@ -1,29 +1,39 @@
+
 import { useAuth } from "react-oidc-context";
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Home from "./pages/home/Home"; 
+import Home from "./pages/home/Home";
 import ShowItem from "./pages/showItem/ShowItem";
 import AddItem from "./pages/addItem/AddItem";
-
 
 function App() {
   const auth = useAuth();
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated && !auth.error) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const fromLogout = urlParams.get("logged_out");
+    if (auth.isLoading) return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    // 🛑 Prevent redirect loop on Cognito callback
+    if (params.get("code") || params.get("state")) {
+      return; 
+    }
+
+    if (!auth.isAuthenticated && !auth.error) {
+      const fromLogout = params.get("logged_out");
 
       if (fromLogout === "1") {
-        setRedirecting(true); // prevent UI flash
+        setRedirecting(true);
         auth.signinRedirect();
       }
     }
-  }, [auth.isLoading, auth.isAuthenticated, auth.error, auth]);
+  }, [auth.isLoading, auth.isAuthenticated, auth.error]);
+
   if (auth.isLoading || redirecting) {
-    return <div>Loading...</div>; // or null
+    return <div>Loading...</div>;
   }
+
   if (auth.error) {
     return <div>Encountering error... {auth.error.message}</div>;
   }
