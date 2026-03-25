@@ -15,7 +15,18 @@ export const AuthProvider = ({ children }) => {
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [isAdminPlus, setIsAdminPlus] = useState(false);
 
+  // Redirect unauthenticated users to Cognito,
+  // except when they have just logged out.
   useEffect(() => {
+    const url = new URL(window.location.href);
+    const wasLoggedOut = url.searchParams.get("logged_out") === "1";
+
+    if (wasLoggedOut) {
+      url.searchParams.delete("logged_out");
+      window.history.replaceState({}, document.title, url.pathname);
+      return;
+    }
+
     if (
       !hasAuthParams() &&
       !auth.isLoading &&
