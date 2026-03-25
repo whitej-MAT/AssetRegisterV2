@@ -9,18 +9,23 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastContainer } from "react-toastify";
 
 const cognitoAuthConfig = {
-  authority: "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_oPM5UEmul",
+  // Use your Cognito hosted UI / managed login domain here, not cognito-idp.amazonaws.com
+  // Example:
+  // authority: "https://your-domain.auth.eu-west-2.amazoncognito.com",
+  authority: import.meta.env.VITE_COGNITO_AUTHORITY,
+
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID,
   redirect_uri: import.meta.env.VITE_COGNITO_REDIRECT_URI,
   post_logout_redirect_uri: import.meta.env.VITE_COGNITO_LOGOUT_URI,
   response_type: "code",
-  scope: "email openid phone",
+  scope: "openid email phone",
+
+  onSigninCallback: () => {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  },
 };
 
-
-
 const queryClient = new QueryClient();
-
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(

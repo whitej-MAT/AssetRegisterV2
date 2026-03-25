@@ -1,6 +1,5 @@
-// src/context/AuthProvider.jsx
 import { useState, useEffect } from "react";
-import { useAuth } from "react-oidc-context";
+import { useAuth, hasAuthParams } from "react-oidc-context";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "./AuthContext.jsx";
 
@@ -17,6 +16,24 @@ export const AuthProvider = ({ children }) => {
   const [isAdminPlus, setIsAdminPlus] = useState(false);
 
   useEffect(() => {
+    if (
+      !hasAuthParams() &&
+      !auth.isLoading &&
+      !auth.isAuthenticated &&
+      !auth.activeNavigator &&
+      !auth.error
+    ) {
+      auth.signinRedirect();
+    }
+  }, [
+    auth.isLoading,
+    auth.isAuthenticated,
+    auth.activeNavigator,
+    auth.error,
+    auth,
+  ]);
+
+  useEffect(() => {
     if (!auth.isAuthenticated) {
       setGroups([]);
       setPrefixes([]);
@@ -27,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const userGroups = auth.user?.profile["cognito:groups"] || [];
+    const userGroups = auth.user?.profile?.["cognito:groups"] || [];
     setGroups(userGroups);
 
     const uniquePrefixes = [...new Set(userGroups.map((g) => g.split("_")[0]))];
@@ -40,13 +57,19 @@ export const AuthProvider = ({ children }) => {
     } else if (!pathPrefix && uniquePrefixes.length > 0) {
       const defaultPrefix = uniquePrefixes[0];
       setSelectedPrefix(defaultPrefix);
-      navigate(`/${defaultPrefix}`);
+      navigate(`/${defaultPrefix}`, { replace: true });
     } else if (!selectedPrefix && uniquePrefixes.length > 0) {
       const defaultPrefix = uniquePrefixes[0];
       setSelectedPrefix(defaultPrefix);
-      navigate(`/${defaultPrefix}`);
+      navigate(`/${defaultPrefix}`, { replace: true });
     }
-  }, [auth.isAuthenticated, auth.user, location.pathname]);
+  }, [
+    auth.isAuthenticated,
+    auth.user,
+    location.pathname,
+    navigate,
+    selectedPrefix,
+  ]);
 
   useEffect(() => {
     if (selectedPrefix) {
@@ -60,14 +83,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, [selectedPrefix, groups]);
 
-
-
   useEffect(() => {
     if (auth.isAuthenticated) {
       console.log("ID Token:", auth.user?.id_token);
       console.log("Access Token:", auth.user?.access_token);
     }
-  }, [auth.isAuthenticated]);
+  }, [auth.isAuthenticated, auth.user]);
 
   return (
     <AuthContext.Provider
