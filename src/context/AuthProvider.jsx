@@ -3,6 +3,9 @@ import { useAuth, hasAuthParams } from "react-oidc-context";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "./AuthContext.jsx";
 
+const LOGOUT_REDIRECT_FLAG = "app_logout_redirect";
+const LOGOUT_REDIRECT_DELAY_MS = 1200;
+
 export const AuthProvider = ({ children }) => {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -15,19 +18,39 @@ export const AuthProvider = ({ children }) => {
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [isAdminPlus, setIsAdminPlus] = useState(false);
 
-  // Redirect unauthenticated users to Cognito,
-  // except when they have just logged out.
   useEffect(() => {
     const url = new URL(window.location.href);
     const wasLoggedOut = url.searchParams.get("logged_out") === "1";
+    const logoutRedirectPending =
+      sessionStorage.getItem(LOGOUT_REDIRECT_FLAG) === "1";
 
     if (wasLoggedOut) {
+      sessionStorage.setItem(LOGOUT_REDIRECT_FLAG, "1");
       url.searchParams.delete("logged_out");
-      window.history.replaceState({}, document.title, url.pathname);
+      window.history.replaceState(
+        {},
+        document.title,
+        `${url.pathname}${url.search}${url.hash}`
+      );
       return;
     }
 
     if (
+      logoutRedirectPending &&
+      !hasAuthParams() &&
+      !auth.isLoading &&
+      !auth.isAuthenticated &&
+      !auth.activeNavigator
+    ) {
+      const timeoutId = window.setTimeout(() => {
+        auth.signinRedirect();
+      }, LOGOUT_REDIRECT_DELAY_MS);
+
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    if (
+      !logoutRedirectPending &&
       !hasAuthParams() &&
       !auth.isLoading &&
       !auth.isAuthenticated &&
@@ -43,6 +66,12 @@ export const AuthProvider = ({ children }) => {
     auth.error,
     auth,
   ]);
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      sessionStorage.removeItem(LOGOUT_REDIRECT_FLAG);
+    }
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     if (!auth.isAuthenticated) {

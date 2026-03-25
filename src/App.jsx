@@ -6,9 +6,15 @@ import AddItem from "./pages/addItem/AddItem";
 
 function App() {
   const auth = useAuth();
+  const logoutRedirectPending =
+    sessionStorage.getItem("app_logout_redirect") === "1";
 
   if (auth.isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (logoutRedirectPending && !auth.isAuthenticated) {
+    return <div>Signing you out...</div>;
   }
 
   if (auth.activeNavigator === "signinRedirect") {
