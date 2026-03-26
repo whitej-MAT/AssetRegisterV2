@@ -15,7 +15,8 @@ import "./ShowItem.css";
 
 function ShowItem() {
   const { deviceType, serialNumber } = useParams();
-  const { selectedPrefix, isAdmin, isViewOnly, isAdminPlus } = useAuthContext();
+  //const { auth, selectedPrefix } = useAuthContext(); // 👈 grab the prefix
+  const { auth, selectedPrefix, isAdmin, isViewOnly, isAdminPlus } = useAuthContext();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   const { submitData } = useSubmitData();
@@ -280,6 +281,8 @@ const handleChange = async (name, value) => {
   // Optional: delete locally (wire server delete when you have endpoint)
   const handleDeleteNote = async (index) => {
   if (isViewOnly) return;
+  const token = auth.user?.id_token || auth.user?.access_token;
+      if (!token) throw new Error("No token found. User may not be authenticated.");
 
   const currentNotes = Array.isArray(values.notes ?? item.notes)
     ? (values.notes ?? item.notes)
