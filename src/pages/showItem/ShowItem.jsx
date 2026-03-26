@@ -242,43 +242,7 @@ const handleChange = async (name, value) => {
   // Endpoint: /notes?prefix=...&deviceType=...&serialNumber=...&noteText=...
   // Data NOT returned, so we append locally with a local timestamp.
   // =========================
-  const handleAddNoteBlur = async (noteText) => {
-    if (isViewOnly) return;
-
-    const raw = String(noteText ?? "").trim();
-    if (!raw) return;
-
-    const url = `${baseUrl}/notes?prefix=${encodeURIComponent(
-      selectedPrefix
-    )}&deviceType=${encodeURIComponent(
-      deviceType
-    )}&serialNumber=${encodeURIComponent(
-      serialNumber
-    )}&noteText=${encodeURIComponent(raw)}&timestamp=${encodeURIComponent(makeLocalTimestamp())}`;
-    console.log("Submitting new note to URL:", url);
-    await submitData(url, {});
-
-    const dateStamp = makeLocalTimestamp();
-
-    // append locally
-    setValues((prev) => {
-      const existing = Array.isArray(prev.notes)
-        ? prev.notes
-        : Array.isArray(item.notes)
-        ? item.notes
-        : [];
-
-      return {
-      ...prev,
-      notes: [{ date: dateStamp, text: raw }, ...existing],
-    };
-    });
-
-    setNewNote("");
-  };
-
-  // Optional: delete locally (wire server delete when you have endpoint)
-  const handleDeleteNote = async (index) => {
+const handleDeleteNote = async (index) => {
   if (isViewOnly) return;
 
   const currentNotes = Array.isArray(values.notes ?? item.notes)
@@ -300,6 +264,8 @@ const handleChange = async (name, value) => {
   }));
 
   try {
+    const token = auth.user?.access_token;
+
     const url = `${baseUrl}/notes?prefix=${encodeURIComponent(
       selectedPrefix
     )}&deviceType=${encodeURIComponent(
@@ -308,10 +274,14 @@ const handleChange = async (name, value) => {
       serialNumber
     )}&timestamp=${encodeURIComponent(ts)}&noteText=${encodeURIComponent(text)}`;
 
-    const resp = await fetch(url, { method: "DELETE" });
+    const resp = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!resp.ok) {
-      // rollback if delete failed
       setValues((prev) => ({
         ...prev,
         notes: currentNotes,
@@ -319,7 +289,6 @@ const handleChange = async (name, value) => {
       console.error("Delete note failed:", await resp.text());
     }
   } catch (err) {
-    // rollback if network error
     setValues((prev) => ({
       ...prev,
       notes: currentNotes,
