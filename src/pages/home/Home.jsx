@@ -5,8 +5,7 @@ import ItemTiles from "../../components/itemTiles/ItemTiles";
 import TableHeaderBar from "../../components/tableHeaderBar/TableHeaderBar";
 
 function Home() {
-    const { selectedPrefix } = useAuthContext();
-    
+  const { selectedPrefix } = useAuthContext();
 
 
   return (

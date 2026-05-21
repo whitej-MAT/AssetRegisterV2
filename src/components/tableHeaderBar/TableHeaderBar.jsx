@@ -9,19 +9,8 @@ import DropDownBox from "../dropDownBox/DropDownBox";
 import HEADER_UI_CONFIG from "./tableHeaderBarConfig.js";
 import { toast } from "react-toastify";
 import { useAuthContext } from "../../hooks/useAuthContext.js";
-
-// ---------- helpers ----------
-function normalizeTileSlug(slug = "") {
-  return String(slug)
-    .replace(/[-_]+/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-function toTitleCase(s = "") {
-  return String(s).replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import { normalizeTileSlug, toTitleCase, downloadCsv, downloadAllFieldsCsv } from "../../utils/helpers.js";
+import axios from "axios";
 
 function cleanLocation(value = "") {
   return String(value).replace(/\s*\(\d+\)\s*$/, "").trim();
@@ -42,7 +31,7 @@ const MATCH_TO_API = {
 };
 
 export default function TableHeaderBar() {
-  const {isAdmin, isViewOnly, isAdminPlus} = useAuthContext();
+  const { auth, isAdmin, isViewOnly, isAdminPlus, selectedPrefix } = useAuthContext();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
@@ -76,7 +65,6 @@ export default function TableHeaderBar() {
     () => HEADER_UI_CONFIG[deviceTypeKey] || HEADER_UI_CONFIG.DEFAULT,
     [deviceTypeKey]
   );
-  console.log("UI config for device type:", deviceTypeKey, ui);
 
   const storageKey = useMemo(() => {
     return `tableState:${prefixParam || ""}:${itemType || ""}:${deviceTypeForApi || ""}`;
@@ -92,7 +80,6 @@ export default function TableHeaderBar() {
   const [isWorking, setIsWorking] = useState("");
   const [localFilter, setLocalFilter] = useState("");
   const [visibleRowCount, setVisibleRowCount] = useState(0);
-  console.log("Initial visible row count:", visibleRowCount);
 
   const [nextToken, setNextToken] = useState(null);
   const [prevTokens, setPrevTokens] = useState([]);
@@ -155,7 +142,6 @@ export default function TableHeaderBar() {
       setIsWorking("");
     }
   }, [ui.showLocation, ui.showIsWorking, hasHydrated]);
-  console.log("UI config for this tile:", ui);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -318,6 +304,74 @@ export default function TableHeaderBar() {
     navigate(`/AddItem/${tileSlugParam}`);
   }, [navigate, tileSlugParam]);
 
+  const [isExporting, setIsExporting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  const exportBaseUrl = useMemo(() => {
+    if (!prefixParam || !itemType || !deviceTypeForApi) return "";
+
+    if (activeQuery) {
+      const params = new URLSearchParams({
+        prefix: prefixParam,
+        itemType,
+        deviceType: deviceTypeForApi,
+        limit: "200",
+      });
+      if (activeQuery.attributeName) params.set("attributeName", activeQuery.attributeName);
+      if (activeQuery.attributeValue) params.set("attributeValue", activeQuery.attributeValue);
+      if (activeQuery.matchType) params.set("matchType", activeQuery.matchType);
+      if (activeQuery.location) params.set("location", activeQuery.location);
+      if (activeQuery.isWorking) params.set("isWorking", activeQuery.isWorking);
+      return `${baseUrl}/items/search?${params.toString()}`;
+    }
+
+    const params = new URLSearchParams({
+      prefix: prefixParam,
+      itemType,
+      deviceType: deviceTypeForApi,
+      limit: "200",
+    });
+    return `${baseUrl}/items?${params.toString()}`;
+  }, [baseUrl, prefixParam, itemType, deviceTypeForApi, activeQuery]);
+
+  const handleExportCsv = useCallback(async (mode) => {
+    if (!exportBaseUrl) return;
+    setShowExportModal(false);
+    setIsExporting(true);
+
+    try {
+      const token = auth.user?.id_token;
+      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "x-prefix": selectedPrefix || "" };
+      const filename = `${prefixParam}_${deviceTypeForApi.toLowerCase().replace(/\s+/g, "_")}`;
+
+      let allItems = [];
+      let pageToken = null;
+      let columnHeadings = null;
+
+      do {
+        const url = pageToken
+          ? `${exportBaseUrl}&nextToken=${encodeURIComponent(pageToken)}`
+          : exportBaseUrl;
+
+        const { data } = await axios.get(url, { headers });
+        if (!columnHeadings) columnHeadings = data.tableHeaders ?? [];
+        allItems = allItems.concat(data.searchableItems?.items ?? []);
+        pageToken = data.searchableItems?.nextToken ?? null;
+      } while (pageToken);
+
+      if (mode === "all") {
+        downloadAllFieldsCsv(allItems, filename);
+      } else {
+        downloadCsv(allItems, columnHeadings ?? [], filename);
+      }
+    } catch (err) {
+      console.error("Export failed:", err);
+      toast.error("Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  }, [exportBaseUrl, auth.user, selectedPrefix, deviceTypeForApi, prefixParam]);
+
   const [shouldSync, setShouldSync] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
 
@@ -353,8 +407,6 @@ useEffect(() => {
   if (!shouldSync) return;
 
   if (syncData) {
-    console.log("Sync successful:", syncData);
-
     toast.success(syncData?.message || "Sync with Microsoft successful!");
 
     setShouldSync(false);
@@ -489,6 +541,32 @@ useEffect(() => {
           Add new item
         </button>
       )}
+
+        <button
+          className="HeaderButton"
+          type="button"
+          onClick={() => setShowExportModal(true)}
+          disabled={isExporting || isLoading}
+        >
+          {isExporting ? "Exporting..." : "Export CSV"}
+        </button>
+
+        {showExportModal && (
+          <div className="ExportModalOverlay" onClick={() => setShowExportModal(false)}>
+            <div className="ExportModal" onClick={(e) => e.stopPropagation()}>
+              <p className="ExportModalTitle">What would you like to export?</p>
+              <button className="ExportModalBtn" onClick={() => handleExportCsv("table")}>
+                Table columns only
+              </button>
+              <button className="ExportModalBtn" onClick={() => handleExportCsv("all")}>
+                All fields
+              </button>
+              <button className="ExportModalCancel" onClick={() => setShowExportModal(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {ui.showSyncWithMicrosoft && !isViewOnly && (
           <button

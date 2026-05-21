@@ -8,33 +8,11 @@ import NotesSection from "../../components/notesSection/NotesSection";
 import useApiData from "../../hooks/useApiData";
 import useSubmitData from "../../hooks/usePostData";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import useStaffList from "../../hooks/useStaffList";
 import { formatPayload } from "../../utils/formatPayload";
+import { normalizeTileSlug, toTitleCase, isNoneValue, makeLocalTimestamp } from "../../utils/helpers";
 import "./AddItem.css";
 import "../showItem/ShowItem.css";
-
-const normalizeTileSlug = (slug = "") =>
-  String(slug)
-    .replace(/[-_]+/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim()
-    .replace(/\s+/g, " ");
-
-const toTitleCase = (s = "") => String(s).replace(/\b\w/g, (c) => c.toUpperCase());
-
-const isNoneValue = (v) => {
-  const s = String(v ?? "").trim().toLowerCase();
-  return s === "" || s === "none" || s === "null" || s === "n/a";
-};
-
-const makeLocalTimestamp = () => {
-  const now = new Date();
-  const dd = String(now.getDate()).padStart(2, "0");
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const yyyy = now.getFullYear();
-  const hh = String(now.getHours()).padStart(2, "0");
-  const min = String(now.getMinutes()).padStart(2, "0");
-  return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
-};
 
 const singularize = (label = "") => {
   const s = String(label).trim();
@@ -76,42 +54,11 @@ function AddItem() {
     return data.fields ?? [];
   }, [data]);
 
+  const { dataPUWithNone, staffByEmail } = useStaffList();
+
   const [values, setValues] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [newNote, setNewNote] = useState("");
-
-  const staffEndpoint = useMemo(() => {
-    if (!selectedPrefix) return "";
-    return `${baseUrl}/primaryUsers?prefix=${encodeURIComponent(selectedPrefix)}`;
-  }, [baseUrl, selectedPrefix]);
-
-  const { data: staffData } = useApiData({
-    queryKey: ["staffList", selectedPrefix],
-    url: staffEndpoint,
-    enabled: !!staffEndpoint,
-  });
-
-  const dataPU = staffData?.items ?? [];
-
-  const dataPUWithNone = useMemo(() => {
-    const base = dataPU ?? [];
-    const hasNone = base.some(
-      (u) => String(u?.email ?? "").toLowerCase().trim() === "none"
-    );
-    if (hasNone) return base;
-    return [{ id: "None", email: "None" }, ...base];
-  }, [dataPU]);
-
-  const staffByEmail = useMemo(() => {
-    const map = new Map();
-    for (const u of dataPUWithNone) {
-      const email = String(u?.email ?? "").trim().toLowerCase();
-      if (email) {
-        map.set(email, u.id);
-      }
-    }
-    return map;
-  }, [dataPUWithNone]);
 
   useEffect(() => {
     if (!fields.length) return;
@@ -170,16 +117,12 @@ function AddItem() {
   const notes = Array.isArray(values.notes) ? values.notes : [];
 
   const handleSubmit = useCallback(async () => {
-    console.log("Submitting new item with values:", values);
     setSubmitError("");
 
     if (!canSubmit) {
       setSubmitError(`Missing required fields: ${requiredMissing.join(", ")}`);
       return;
     }
-
-    console.log("values:", Object.prototype.toString.call(values), values);
-    console.log("fields:", Object.prototype.toString.call(fields), fields);
 
     const payload = formatPayload(values, fields);
 
@@ -199,14 +142,11 @@ function AddItem() {
       }
     }
 
-    console.log("Formatted payload:", payload);
-
     const url = `${baseUrl}/item?prefix=${encodeURIComponent(
       selectedPrefix
     )}&deviceType=${encodeURIComponent(deviceTypeForApi)}`;
 
     try {
-      console.log("Submitting to URL:", url);
       await submitData(url, payload);
 
       setValues((prev) => ({
@@ -223,7 +163,6 @@ function AddItem() {
 
       setNewNote("");
     } catch (e) {
-      console.error("Submission error:", e);
       setSubmitError(String(e?.message ?? e));
     }
   }, [

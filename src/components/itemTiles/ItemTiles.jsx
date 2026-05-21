@@ -78,7 +78,7 @@ export default function ItemTiles({
   const specialTile = useMemo(
     () => ({
       sk: "__SWITCH_TYPE__",
-      label: effectiveItemType === "asset" ? "View Devices" : "Back",
+      label: effectiveItemType === "asset" ? "View staff / school assets" : "Back",
       count: null,
       isSpecial: true,
     }),
@@ -164,16 +164,12 @@ export default function ItemTiles({
     return;
   }
 
-  // ✅ include displayName in the URL
-  const tileCamel = (tile.label);
-  console.log("Tile clicked:", { label: tile.label, camel: tileCamel, sk: tile.sk });
   navigate(
     `/${encodeURIComponent(prefix)}/${encodeURIComponent(
       effectiveItemType
-    )}/${encodeURIComponent(tileCamel)}`
+    )}/${encodeURIComponent(tile.label)}`
   );
 
-  // keep your callback if you still need it
   onSelectedTileChange?.(tile);
 };
 
@@ -235,6 +231,7 @@ export default function ItemTiles({
                 }`}
                 onClick={() => handleTileClick(tile)}
                 role="button"
+                tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") handleTileClick(tile);
                 }}

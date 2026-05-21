@@ -5,7 +5,6 @@
  * - values: plain object { [fieldName]: value }
  * - fields: array of field objects, typically with .name
  */
-console.log("✅ using utils/formatPayload", import.meta.url);
 export function formatPayload(values = {}, fields = []) {
   // Normalize fields into an array safely
   const fieldList = Array.isArray(fields)

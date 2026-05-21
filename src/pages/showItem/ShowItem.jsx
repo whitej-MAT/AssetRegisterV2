@@ -1,7 +1,9 @@
 // src/pages/showItem/ShowItem.jsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import useStaffList from "../../hooks/useStaffList";
+import { isNoneValue, makeLocalTimestamp } from "../../utils/helpers";
 import useApiData from "../../hooks/useApiData";
 import useSubmitData from "../../hooks/usePostData";
 import Header from "../../components/header/Header";
@@ -15,7 +17,7 @@ import "./ShowItem.css";
 
 function ShowItem() {
   const { deviceType, serialNumber } = useParams();
-  //const { auth, selectedPrefix } = useAuthContext(); // 👈 grab the prefix
+  const navigate = useNavigate();
   const { auth, selectedPrefix, isAdmin, isViewOnly, isAdminPlus } = useAuthContext();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -39,7 +41,7 @@ function ShowItem() {
     )}&isAdminPlus=${encodeURIComponent(String(isAdminPlus))}`;
   }, [baseUrl, selectedPrefix, deviceType, serialNumber, isAdminPlus]);
 
-  const { data, isLoading } = useApiData({
+  const { data, isLoading, refetch } = useApiData({
     queryKey: ["itemDetails", selectedPrefix, deviceType, serialNumber],
     url: itemEndpoint,
     enabled: !!itemEndpoint,
@@ -55,75 +57,32 @@ const { data: devicesOwned } = useApiData({
   enabled: !!devicesOwnedEndpoint,
 });
 
-const devicesOwnedHeadings = devicesOwned?.tableHeaders ?? [];
-const devicesOwnedRows = devicesOwned?.searchableItems?.items ?? [];
-  // =========================
-  // GET: Staff list endpoint
-  // =========================
-  const staffEndpoint = useMemo(() => {
-    if (!selectedPrefix) return "";
-    return `${baseUrl}/primaryUsers?prefix=${encodeURIComponent(selectedPrefix)}`;
-  }, [baseUrl, selectedPrefix]);
+  const devicesOwnedHeadings = devicesOwned?.tableHeaders ?? [];
+  const devicesOwnedRows = devicesOwned?.searchableItems?.items ?? [];
 
-  const { data: staffData } = useApiData({
-    queryKey: ["staffList", selectedPrefix],
-    url: staffEndpoint,
-    enabled: !!staffEndpoint,
+  const { dataPUWithNone, staffByEmail } = useStaffList();
+
+  const locationsEndpoint = useMemo(() => {
+    const isStaff = deviceType === "Signed Staff" || deviceType === "Unsigned Staff";
+    if (!selectedPrefix || !deviceType || isStaff) return "";
+    return `${baseUrl}/locations?prefix=${encodeURIComponent(selectedPrefix)}&deviceType=${encodeURIComponent(deviceType)}`;
+  }, [baseUrl, selectedPrefix, deviceType]);
+
+  const { data: locationsData } = useApiData({
+    queryKey: ["locations", selectedPrefix, deviceType],
+    url: locationsEndpoint,
+    enabled: !!locationsEndpoint,
   });
 
-  const dataPU = staffData?.items ?? [];
+  const locationOptions = locationsData?.locations ?? [];
+
   const fields = data?.fields ?? [];
   const item = data?.item ?? {};
 
   const adminFields = data?.adminFields ?? [];
-  const adminItem = data?.adminItem ?? {};
 
-  // =========================
-  // Add a synthetic "None" option
-  // =========================
-  const dataPUWithNone = useMemo(() => {
-    const base = dataPU ?? [];
-    const hasNone = base.some(
-      (u) => String(u?.email ?? "").toLowerCase().trim() === "none"
-    );
-    if (hasNone) return base;
-
-    return [{ id: "None", email: "None" }, ...base];
-  }, [dataPU]);
-
-  // =========================
-  // map email -> id for primaryUserID (includes None)
-  // =========================
-  const staffByEmail = useMemo(() => {
-    const map = new Map();
-    for (const u of dataPUWithNone) {
-      const email = String(u?.email ?? "").trim().toLowerCase();
-      if (email) map.set(email, u.id);
-    }
-    return map;
-  }, [dataPUWithNone]);
-
-  // =========================
-  // helpers
-  // =========================
   const normalize = (v) => (v == null ? "" : String(v));
   const isEqual = (a, b) => normalize(a) === normalize(b);
-
-  const isNoneValue = (v) => {
-    const s = String(v ?? "").trim().toLowerCase();
-    return s === "" || s === "none" || s === "null" || s === "n/a";
-  };
-
-  // Local timestamp: "DD-MM-YYYY HH:mm"
-  const makeLocalTimestamp = () => {
-    const now = new Date();
-    const dd = String(now.getDate()).padStart(2, "0");
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const yyyy = now.getFullYear();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const min = String(now.getMinutes()).padStart(2, "0");
-    return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
-  };
 
   // =========================
   // Local state update
@@ -194,7 +153,6 @@ const handleChange = async (name, value) => {
   // =========================
   const handleFieldBlur = async (name, value) => {
     if (isViewOnly) return;
-    console.log(`Field blur: ${name} =`, value);
 
     const raw = String(value ?? "").trim();
     const none = isNoneValue(raw);
@@ -228,7 +186,6 @@ const handleChange = async (name, value) => {
         url += `&primaryUserID=${encodeURIComponent(userId)}`;
       }
     }
-    console.log("Submitting field update to URL:", url);
     await submitData(url, {});
 
     // update snapshot
@@ -255,8 +212,7 @@ const handleChange = async (name, value) => {
       deviceType
     )}&serialNumber=${encodeURIComponent(
       serialNumber
-    )}&noteText=${encodeURIComponent(raw)}&timestamp=${encodeURIComponent(makeLocalTimestamp())}`;
-    console.log("Submitting new note to URL:", url);
+    )}&noteText=${encodeURIComponent(raw)}`;
     await submitData(url, {});
 
     const dateStamp = makeLocalTimestamp();
@@ -360,19 +316,9 @@ const handleChange = async (name, value) => {
   lastSavedRef.current = initial;
 }, [fields, adminFields, item, data?.adminItem]);
 
-useEffect(() => {
-  console.log("API data:", data);
-  console.log("depreciation:", data?.depreciation);
-  console.log("points:", data?.depreciation?.points);
-  console.log("isAdminPlus:", isAdminPlus);
-  console.log("itemEndpoint:", itemEndpoint);
-}, [data, isAdminPlus, itemEndpoint]);
-
 const handleStatusChange = async (status) => {
-  // 1) update UI immediately
   setValues((prev) => ({ ...prev, deviceStatus: status }));
 
-  // 2) force POST regardless of lastSavedRef (don't pre-update it)
   if (isViewOnly) return;
 
   const url = `${baseUrl}/updateItem?prefix=${encodeURIComponent(
@@ -383,29 +329,51 @@ const handleStatusChange = async (status) => {
     status
   )}`;
 
-  console.log("Submitting status update to URL:", url);
   await submitData(url, {});
 
-  // 3) now update snapshot
-  lastSavedRef.current = {
-    ...lastSavedRef.current,
-    deviceStatus: status,
-  };
+  lastSavedRef.current = { ...lastSavedRef.current, deviceStatus: status };
 };
-const handleDelete = async () => {
-  if (!isViewOnly) {
-    const url = `${baseUrl}/deleteItem?prefix=${encodeURIComponent(
-      selectedPrefix
-    )}&deviceType=${encodeURIComponent(
-      deviceType
-    )}&serialNumber=${encodeURIComponent(serialNumber)}`;
-    console.log("Submitting delete request to URL:", url);
-    await submitData(url, {});
+
+const handleDeletePreviousUser = async (email) => {
+  if (isViewOnly) return;
+
+  const current = Array.isArray(values.previousUsers) ? values.previousUsers : [];
+
+  setValues((prev) => ({
+    ...prev,
+    previousUsers: current.filter((e) => e !== email),
+  }));
+
+  const url = `${baseUrl}/previousUsers?prefix=${encodeURIComponent(selectedPrefix)}&deviceType=${encodeURIComponent(deviceType)}&serialNumber=${encodeURIComponent(serialNumber)}&email=${encodeURIComponent(email)}`;
+  const result = await submitData(url, {}, "delete");
+
+  if (!result) {
+    setValues((prev) => ({ ...prev, previousUsers: current }));
   }
 };
 
+const handleDelete = async () => {
+  if (isViewOnly) return;
+  if (!window.confirm(`Delete ${serialNumber}? This cannot be undone.`)) return;
+
+  const url = `${baseUrl}/deleteItem?prefix=${encodeURIComponent(
+    selectedPrefix
+  )}&deviceType=${encodeURIComponent(
+    deviceType
+  )}&serialNumber=${encodeURIComponent(serialNumber)}`;
+  await submitData(url, {}, "delete");
+  navigate(-1);
+};
+
+const handleSync = async () => {
+  const url = `${baseUrl}/updateItemFromMicrosoft?prefix=${encodeURIComponent(
+    selectedPrefix
+  )}&deviceType=${encodeURIComponent(deviceType)}&serialNumber=${encodeURIComponent(serialNumber)}`;
+  await submitData(url, {});
+  await refetch();
+};
+
   const deviceStatus = values.deviceStatus ?? item.deviceStatus ?? "";
-  console.log(deviceStatus)
   const notes = Array.isArray(values.notes ?? item.notes) ? (values.notes ?? item.notes) : [];
 
   if (isLoading)
@@ -423,9 +391,9 @@ const handleDelete = async () => {
         <ItemHeader
           deviceType={deviceType}
           itemSerialNumber={serialNumber}
-          // These existed in your snippet; keep your implementations:
-          handleSync={() => handleSync(deviceType, serialNumber, selectedPrefix)}
-          handleDelete={() => handleDelete(deviceType, serialNumber, selectedPrefix)}
+          primaryUser={values.primaryUser}
+          handleSync={handleSync}
+          handleDelete={handleDelete}
         />
 
         <FormFields
@@ -437,6 +405,7 @@ const handleDelete = async () => {
           isAdminPlus={isAdminPlus}
           isViewOnly={isViewOnly}
           dataPU={dataPUWithNone}
+          locationOptions={locationOptions}
         />
         {isAdminPlus && deviceType !== "Signed Staff" && deviceType !== "Unsigned Staff" && (
   <>
@@ -453,6 +422,37 @@ const handleDelete = async () => {
     <DeviceDepreciationChart depreciation={data?.depreciation} />
   </>
 )}
+
+        {fields.some((f) => f.name === "primaryUser") && (
+          <div className="PreviousUsersSection">
+            <h3 className="PreviousUsersTitle">Previous users</h3>
+            {Array.isArray(values.previousUsers) && values.previousUsers.length > 0 ? (
+              <div className="PreviousUsersBubbles">
+                {values.previousUsers.slice(0, 5).map((email) => (
+                  <div key={email} className="PreviousUsersBubble" title={email}>
+                    <span className="PreviousUsersBubbleText">{email}</span>
+                    {!isViewOnly && (
+                      <button
+                        className="PreviousUsersBubbleDelete"
+                        onClick={() => handleDeletePreviousUser(email)}
+                        title="Remove"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {values.previousUsers.length > 5 && (
+                  <div className="PreviousUsersBubble PreviousUsersBubbleCount">
+                    +{values.previousUsers.length - 5}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="PreviousUsersEmpty">No previous users</p>
+            )}
+          </div>
+        )}
 
         {deviceType !== "Signed Staff" && deviceType !== "Unsigned Staff" && (
           <>

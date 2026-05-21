@@ -9,20 +9,20 @@
   font-family: 'Trebuchet MS', sans-serif;
   font-weight: bold;
   width: 100%;
-  max-width: 1400px;
-  margin: 20px auto;
+  max-width: 1550px;
+  margin: 5px auto;
   border-radius: 10px;
   box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
   letter-spacing: 1px;
-  transition: 0.5s;
-  flex-wrap: nowrap;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .TitleHeading {
   margin-right: 10px;
   white-space: nowrap;
 }
+
 .ScrollableTable tr.row-selected td {
   background: #ffe2df;
 }
@@ -38,6 +38,7 @@
   padding: 0 10px;
   box-sizing: border-box;
 }
+
 .Search {
   border-bottom: 2px solid white;
 }
@@ -65,23 +66,26 @@
   color: white;
 }
 
+/* Table wrapper: overflow-x allows the table to scroll horizontally
+   on narrow screens rather than forcing a minimum page width */
 .TableWrapper {
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1550px;
+  margin: 5px auto;
   overflow-x: auto;
   border-radius: 8px;
 }
 
 .ScrollableTable {
   width: 100%;
+  min-width: 600px; /* table itself can scroll inside the wrapper */
   border-collapse: collapse;
   border: 1px solid #ddd;
 }
 
 .ScrollableTable th,
 .ScrollableTable td {
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Grande', Geneva, Verdana, sans-serif;
   padding: 10px;
   border-bottom: 1px solid #f6f7f9;
   text-align: left;
@@ -90,6 +94,29 @@
 .ScrollableTable th {
   background-color: #8c2c24;
   color: white;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable-header:hover {
+  background-color: #a63830;
+}
+
+.sort-indicator {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.cell-copied {
+  background-color: #d4edda !important;
+  color: #155724;
+  font-weight: 600;
+  transition: background-color 0.1s;
 }
 
 .ScrollableTable tr:nth-of-type(2n) {
@@ -113,17 +140,4 @@
   color: red;
   font-weight: bold;
   padding: 1rem;
-}
-
-.BodyTitle,
-.TableWrapper {
-  width: 100%;
-  max-width: 1550px; /* keeps layout tight on ultra-wide monitors */
-  min-width: 900px;  /* ensures layout doesn’t collapse */
-  margin: 5px auto;
-}
-@media (max-width: 1024px) {
-  .BodyTitle {
-    flex-wrap: wrap;
-  }
 }

@@ -1,31 +1,8 @@
 // ReusableTable.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { HEADER_TO_FIELD } from "../../utils/helpers";
 import "./ReusableTable.css";
-
-/**
- * Map API "tableHeaders" labels -> actual row object keys.
- * Add/edit as your API evolves.
- */
-const HEADER_TO_FIELD = {
-  "Asset tag": "assetTag",
-  "Serial number": "serialNumber",
-  "Device status": "deviceStatus",
-  "Most recent note": "mostRecentNote",
-  "Damage date": "damageDate", // change if backend uses a different key
-  "Device name": "deviceName",
-  "Device type": "deviceType",
-  "Primary user": "primaryUser",
-  "Location": "location",
-  "Ram": "ram",
-  "Email": "email",
-  "First name": "firstName",
-  "Surname": "surname",
-  "Job title": "jobTitle",
-  "Contract signed": "contractSigned",
-  "Date signed": "dateSigned",
-  "Devices owned": "devicesOwned",
-};
 
 export default function ReusableTable({
   tableRows = [],
@@ -35,6 +12,9 @@ export default function ReusableTable({
 }) {
   const navigate = useNavigate();
   const [selectedRows, setSelectedRows] = useState(() => new Set());
+  const [sortCol, setSortCol] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
+  const [copiedCell, setCopiedCell] = useState(null);
 
   useEffect(() => {
     setSelectedRows(new Set());
@@ -82,30 +62,44 @@ export default function ReusableTable({
   };
 
   const handleRowClick = (row) => {
-    console.log("Row clicked:", row);
     if (!row) return;
 
-    // STAFF
-    if (row.contractSigned === "Unsigned Staff") {
-      navigate(`/ShowItem/Unsigned Staff/${row.id}`);
-      return;
-    }
-    if (row.contractSigned === "Signed Staff") {
-      navigate(`/ShowItem/Signed Staff/${row.id}`);
+    if (row.contractSigned === "Unsigned Staff" || row.contractSigned === "Signed Staff") {
+      const staffId = row.SK ? row.SK.split("#").filter(Boolean).pop() : undefined;
+      navigate(`/ShowItem/${row.contractSigned}/${staffId}`);
       return;
     }
 
-    // DEVICES / ASSETS
-    if (row.deviceType && row.serialNumber || row.phoneNumber) {
-      if (row.deviceType && row.serialNumber) {
-        navigate(`/ShowItem/${row.deviceType}/${row.serialNumber}`);
-        return;
-      }
-      else if (row.deviceType && row.phoneNumber) {
-        navigate(`/ShowItem/${row.deviceType}/${row.phoneNumber}`);
-        return;
-      }
+    if (row.deviceType && row.serialNumber) {
+      navigate(`/ShowItem/${row.deviceType}/${row.serialNumber}`);
       return;
+    }
+    if (row.deviceType && row.phoneNumber) {
+      navigate(`/ShowItem/${row.deviceType}/${row.phoneNumber}`);
+    }
+  };
+
+  const handleCellClick = (e, value, rowIdx, colIdx) => {
+    e.stopPropagation();
+    const text = String(value === "—" ? "" : value ?? "");
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedCell(`${rowIdx}-${colIdx}`);
+      setTimeout(() => setCopiedCell(null), 1000);
+    });
+  };
+
+  const handleHeaderClick = (colIdx) => {
+    if (sortCol === colIdx) {
+      if (sortDir === "asc") {
+        setSortDir("desc");
+      } else {
+        setSortCol(null);
+        setSortDir("asc");
+      }
+    } else {
+      setSortCol(colIdx);
+      setSortDir("asc");
     }
   };
 
@@ -130,9 +124,28 @@ export default function ReusableTable({
     });
   }, [tableRows, globalSearch, columns]);
 
+  const sortedRows = useMemo(() => {
+    if (sortCol === null) return filteredRows;
+    const col = columns[sortCol];
+    if (!col) return filteredRows;
+
+    return [...filteredRows].sort((a, b) => {
+      const av = String(getValueForColumn(a, col) ?? "");
+      const bv = String(getValueForColumn(b, col) ?? "");
+
+      const an = parseFloat(av);
+      const bn = parseFloat(bv);
+      const bothNumeric = !isNaN(an) && !isNaN(bn);
+
+      const cmp = bothNumeric ? an - bn : av.localeCompare(bv);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filteredRows, sortCol, sortDir, columns]);
+
   useEffect(() => {
-  onVisibleRowCountChange?.(filteredRows.length);
-}, [filteredRows, onVisibleRowCountChange]);
+    onVisibleRowCountChange?.(filteredRows.length);
+  }, [filteredRows, onVisibleRowCountChange]);
+
   return (
     <div className="TableWrapper">
       <table className="ScrollableTable">
@@ -140,13 +153,23 @@ export default function ReusableTable({
           <tr>
             <th style={{ width: 40 }}></th>
             {columns.map((col, idx) => (
-              <th key={idx}>{col.headingLabel}</th>
+              <th
+                key={idx}
+                className="sortable-header"
+                onClick={() => handleHeaderClick(idx)}
+                title="Click to sort"
+              >
+                <span>{col.headingLabel}</span>
+                <span className="sort-indicator">
+                  {sortCol === idx ? (sortDir === "asc" ? " ▲" : " ▼") : " ⇅"}
+                </span>
+              </th>
             ))}
           </tr>
         </thead>
 
         <tbody>
-          {filteredRows.length === 0 ? (
+          {sortedRows.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length + 1}
@@ -156,7 +179,7 @@ export default function ReusableTable({
               </td>
             </tr>
           ) : (
-            filteredRows.map((row, rowIdx) => (
+            sortedRows.map((row, rowIdx) => (
               <tr
                 key={getRowId(row, rowIdx)}
                 onClick={() => handleRowClick(row)}
@@ -171,9 +194,24 @@ export default function ReusableTable({
                   />
                 </td>
 
-                {columns.map((col, colIdx) => (
-                  <td key={colIdx}>{getValueForColumn(row, col)}</td>
-                ))}
+                {columns.map((col, colIdx) => {
+                  const value = getValueForColumn(row, col);
+                  const isCopied = copiedCell === `${rowIdx}-${colIdx}`;
+                  return (
+                    <td
+                      key={colIdx}
+                      className={isCopied ? "cell-copied" : ""}
+                    >
+                      <span
+                        onClick={(e) => handleCellClick(e, value, rowIdx, colIdx)}
+                        title="Click to copy"
+                        style={{ cursor: "copy" }}
+                      >
+                        {isCopied ? "Copied!" : value}
+                      </span>
+                    </td>
+                  );
+                })}
               </tr>
             ))
           )}

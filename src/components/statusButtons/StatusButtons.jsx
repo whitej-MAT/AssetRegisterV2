@@ -16,28 +16,28 @@ const computer_statuses = [
   "Lost",
 ];
 
-const isStaffComputer = (itemType) =>
+const hasSimpleStatuses = (itemType) =>
   itemType === "Staff laptop" || itemType === "Staff computer" || itemType === "Radio" || itemType === "Mobile phone";
 
 const mapStatusForDisplay = (status, itemType) => {
-  if (!isStaffComputer(itemType)) return status;
+  if (!hasSimpleStatuses(itemType)) return status;
   return status === "In Use" || status === "Spare" ? "Fully Functional" : status;
 };
 
 const mapStatusForStorage = (status, itemType, primaryUser) => {
-  if (!isStaffComputer(itemType)) return status;
+  if (!hasSimpleStatuses(itemType)) return status;
   if (status === "Fully Functional") return primaryUser ? "In Use" : "Spare";
   return status;
 };
 
 const StatusButtons = ({
   deviceStatus,
-  onStatusChange,   // ✅ use this
+  onStatusChange,
   disabled,
   itemType,
   primaryUser,
 }) => {
-  const buttons_to_map = isStaffComputer(itemType)
+  const buttons_to_map = hasSimpleStatuses(itemType)
     ? computer_statuses
     : default_statuses;
 

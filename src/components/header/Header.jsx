@@ -23,16 +23,11 @@ function Header() {
     navigate({ pathname });
   };
 
-  const signOutRedirect = async () => {
-    sessionStorage.setItem("app_logout_redirect", "1");
-
-    await auth.removeUser();
-
+  const signOutRedirect = () => {
     const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
     const domain = import.meta.env.VITE_COGNITO_DOMAIN;
     const logoutUri = `${window.location.origin}/?logged_out=1`;
-
-    window.location.href = `https://${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    window.location.href = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
   if (auth.isLoading) return <p>Loading...</p>;

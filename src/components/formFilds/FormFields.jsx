@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import DataList from "../../components/dataList/Datalist"; // <-- your datalist component (adjust if needed)
+import React, { useMemo, useState } from "react";
+import DataList from "../../components/dataList/Datalist";
 
 /**
  * Backend-driven form renderer (excluding deviceStatus).
@@ -18,13 +18,24 @@ function FormFields({
   values = {},
   onChange = () => {},
   onBlur = () => {},
-  onClick = () => {},
   isAdmin = false,
   isViewOnly = false,
   isAdminPlus = false,
   isAddMode = false,
   dataPU = [],
+  locationOptions = [],
 }) {
+  const [copiedField, setCopiedField] = useState(null);
+
+  const copyToClipboard = (name, value) => {
+    const text = String(value ?? "").trim();
+    if (!text || text.toLowerCase() === "none") return;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedField(name);
+      setTimeout(() => setCopiedField(null), 1000);
+    });
+  };
+
   const normalizeValue = (v) => {
     if (v === null || v === undefined) return "";
     if (typeof v === "string" && v.trim().toLowerCase() === "none") return "";
@@ -40,18 +51,32 @@ function FormFields({
     return true;
   };
 
-  // ✅ Build the datalist options (emails)
   const primaryUserOptions = useMemo(() => {
     if (!Array.isArray(dataPU)) return [];
     return dataPU.map((u) => u?.email).filter(Boolean);
   }, [dataPU]);
 
+  const CopyBtn = ({ name, value }) => {
+    const text = String(value ?? "").trim();
+    if (!text || text.toLowerCase() === "none") {
+      return <span className="formCopyPlaceholder" />;
+    }
+    return (
+      <button
+        type="button"
+        className="formCopyBtn"
+        onClick={() => copyToClipboard(name, value)}
+        title="Copy to clipboard"
+      >
+        {copiedField === name ? "✓" : "⧉"}
+      </button>
+    );
+  };
+
   return (
     <div className="ItemForm">
       {fields
-        // ✅ hide hidden fields
         .filter((f) => !f.hidden)
-        // ✅ remove deviceStatus here (it will be its own component)
         .filter((f) => f.name !== "deviceStatus")
         .map((field) => {
           const rawValue = values[field.name];
@@ -59,9 +84,7 @@ function FormFields({
           const editable = isEditable(field);
 
           const handleBlur = () => onBlur(field.name, value);
-          const handleOnClick = () => onClick(field.name, value);
 
-          // ✅ primaryUser uses your DataList component
           if (field.name === "primaryUser") {
             return (
               <div className="formRow" key={field.name}>
@@ -80,11 +103,34 @@ function FormFields({
                   name={field.name}
                   placeholder="Start typing an email..."
                 />
+                <CopyBtn name={field.name} value={value} />
               </div>
             );
           }
 
-          // ✅ select fields (excluding deviceStatus) still supported
+          if (field.name === "location" && locationOptions.length > 0) {
+            return (
+              <div className="formRow" key={field.name}>
+                <label className="formLabel">
+                  {field.label}
+                  {field.required ? <span className="requiredStar"> *</span> : null}
+                </label>
+
+                <DataList
+                  className="formInput"
+                  value={value ?? ""}
+                  onChange={(v) => onChange(field.name, v)}
+                  onBlur={handleBlur}
+                  options={locationOptions}
+                  disabled={!editable}
+                  name={field.name}
+                  placeholder="Start typing a location..."
+                />
+                <CopyBtn name={field.name} value={value} />
+              </div>
+            );
+          }
+
           if (field.type === "select") {
             const selectValue = typeof value === "string" ? value.trim() : value;
 
@@ -111,20 +157,15 @@ function FormFields({
                     </option>
                   ))}
                 </select>
+                <CopyBtn name={field.name} value={value} />
               </div>
             );
           }
 
-          // ✅ checkbox supported
           if (field.type === "checkbox") {
-            let bool_value = ""
-            console.log("Raw value for checkbox:", rawValue);
-            if (typeof value === "string" && value.toLowerCase() === "signed staff" || value === "TRUE") {
-              bool_value = true;
-            }
-            else if (typeof value === "string" && value.toLowerCase() === "unsigned staff" || value === "FALSE") {
-              bool_value = false;
-            }
+            const bool_value =
+              value === "TRUE" ||
+              (typeof value === "string" && value.toLowerCase() === "signed staff");
             return (
               <div className="formRow" key={field.name}>
                 <label className="formLabel">
@@ -138,13 +179,12 @@ function FormFields({
                   checked={Boolean(bool_value)}
                   disabled={!editable}
                   onChange={(e) => onChange(field.name, e.target.checked)}
-                  onClick={handleOnClick}
                 />
+                <span className="formCopyPlaceholder" />
               </div>
             );
           }
 
-          // ✅ default input (text/number/date/etc.)
           return (
             <div className="formRow" key={field.name}>
               <label className="formLabel">
@@ -169,6 +209,7 @@ function FormFields({
                 }}
                 onBlur={handleBlur}
               />
+              <CopyBtn name={field.name} value={value} />
             </div>
           );
         })}

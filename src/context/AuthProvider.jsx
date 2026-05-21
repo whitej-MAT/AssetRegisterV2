@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.getItem(LOGOUT_REDIRECT_FLAG) === "1";
 
     if (wasLoggedOut) {
+      auth.removeUser();
       sessionStorage.setItem(LOGOUT_REDIRECT_FLAG, "1");
       url.searchParams.delete("logged_out");
       window.history.replaceState(
@@ -122,13 +123,6 @@ export const AuthProvider = ({ children }) => {
       setIsAdminPlus(false);
     }
   }, [selectedPrefix, groups]);
-
-  useEffect(() => {
-    if (auth.isAuthenticated) {
-      console.log("ID Token:", auth.user?.id_token);
-      console.log("Access Token:", auth.user?.access_token);
-    }
-  }, [auth.isAuthenticated, auth.user]);
 
   return (
     <AuthContext.Provider

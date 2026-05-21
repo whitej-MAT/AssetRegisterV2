@@ -1,5 +1,5 @@
 const HEADER_UI_CONFIG = {
-  "DEFAULT": {
+  DEFAULT: {
     showLocation: false,
     showAddNewItem: false,
     showSyncWithMicrosoft: false,
@@ -11,7 +11,7 @@ const HEADER_UI_CONFIG = {
     showSyncWithMicrosoft: false,
     showIsWorking: true,
   },
-  "ALL STAFF DEVICESs": {
+  "ALL STAFF DEVICES": {
     showLocation: true,
     showAddNewItem: false,
     showSyncWithMicrosoft: false,
@@ -66,14 +66,14 @@ const HEADER_UI_CONFIG = {
     showIsWorking: false,
   },
 
-  "RADIOS": {
+  RADIOS: {
     showLocation: false,
     showAddNewItem: true,
     showSyncWithMicrosoft: false,
     showIsWorking: true,
   },
-  "PRINTERS": {
-    showLocation: false,
+  PRINTERS: {
+    showLocation: true,
     showAddNewItem: true,
     showSyncWithMicrosoft: false,
     showIsWorking: true,
@@ -90,7 +90,6 @@ const HEADER_UI_CONFIG = {
     showSyncWithMicrosoft: false,
     showIsWorking: true,
   },
-  
 };
 
 export default HEADER_UI_CONFIG;

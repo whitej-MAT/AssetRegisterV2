@@ -30,9 +30,7 @@ const useSubmitData = () => {
         },
       });
 
-      console.log("Submit response:", response);
-
-      // ✅ Handle both styles of Lambda responses
+      // Handle both styles of Lambda responses
       const data = response.data;
       const parsedBody =
         typeof data.body === "string"
@@ -46,7 +44,6 @@ const useSubmitData = () => {
       }
 
       toast.success(parsedBody?.message || "Data submitted successfully!");
-      console.log("Response data:", parsedBody);
       return parsedBody;
 
     } catch (err) {
