@@ -25,7 +25,8 @@ function Header() {
 
   const signOutRedirect = () => {
     const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-    const domain = import.meta.env.VITE_COGNITO_DOMAIN;
+    const rawDomain = import.meta.env.VITE_COGNITO_DOMAIN ?? "";
+    const domain = rawDomain.startsWith("http") ? rawDomain : `https://${rawDomain}`;
     const logoutUri = `${window.location.origin}/?logged_out=1`;
     const fullUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
     console.log("[SignOut] clientId:", clientId);
