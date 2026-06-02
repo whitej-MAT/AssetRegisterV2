@@ -27,7 +27,12 @@ function Header() {
     const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
     const domain = import.meta.env.VITE_COGNITO_DOMAIN;
     const logoutUri = `${window.location.origin}/?logged_out=1`;
-    window.location.href = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    const fullUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    console.log("[SignOut] clientId:", clientId);
+    console.log("[SignOut] domain:", domain);
+    console.log("[SignOut] logoutUri:", logoutUri);
+    console.log("[SignOut] full redirect URL:", fullUrl);
+    window.location.href = fullUrl;
   };
 
   if (auth.isLoading) return <p>Loading...</p>;
