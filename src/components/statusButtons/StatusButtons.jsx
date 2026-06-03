@@ -17,7 +17,7 @@ const computer_statuses = [
 ];
 
 const hasSimpleStatuses = (itemType) =>
-  itemType === "Staff laptop" || itemType === "Staff computer" || itemType === "Radio" || itemType === "Mobile phone";
+  itemType === "Staff laptop" || itemType === "Staff computer" || itemType === "Radio" || itemType === "Mobile phone" || itemType === "IP phone" || itemType === "Staff Ipad";
 
 const mapStatusForDisplay = (status, itemType) => {
   if (!hasSimpleStatuses(itemType)) return status;
