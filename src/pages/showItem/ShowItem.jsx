@@ -41,7 +41,7 @@ function ShowItem() {
     )}&isAdminPlus=${encodeURIComponent(String(isAdminPlus))}`;
   }, [baseUrl, selectedPrefix, deviceType, serialNumber, isAdminPlus]);
 
-  const { data, isLoading, refetch } = useApiData({
+  const { data, isLoading, isFetching, refetch } = useApiData({
     queryKey: ["itemDetails", selectedPrefix, deviceType, serialNumber],
     url: itemEndpoint,
     enabled: !!itemEndpoint,
@@ -365,6 +365,14 @@ const handleDelete = async () => {
   navigate(-1);
 };
 
+const handleBack = () => {
+  navigate(-1);
+};
+
+const handleRefresh = async () => {
+  await refetch();
+};
+
 const handleSync = async () => {
   const url = `${baseUrl}/updateItemFromMicrosoft?prefix=${encodeURIComponent(
     selectedPrefix
@@ -394,6 +402,9 @@ const handleSync = async () => {
           primaryUser={values.primaryUser}
           handleSync={handleSync}
           handleDelete={handleDelete}
+          handleBack={handleBack}
+          handleRefresh={handleRefresh}
+          isRefreshing={isFetching}
         />
 
         <FormFields

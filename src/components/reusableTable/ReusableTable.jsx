@@ -4,6 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { HEADER_TO_FIELD } from "../../utils/helpers";
 import "./ReusableTable.css";
 
+const DATE_RE = /^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{2}):(\d{2}))?$/;
+
+function parseSortableDate(str) {
+  const m = DATE_RE.exec(str);
+  if (!m) return null;
+  const [, dd, mm, yyyy, hh = "00", min = "00"] = m;
+  return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min)).getTime();
+}
+
+const NUMERIC_RE = /^-?\d+(\.\d+)?$/;
+
 export default function ReusableTable({
   tableRows = [],
   tableHeadings = [],
@@ -130,14 +141,21 @@ export default function ReusableTable({
     if (!col) return filteredRows;
 
     return [...filteredRows].sort((a, b) => {
-      const av = String(getValueForColumn(a, col) ?? "");
-      const bv = String(getValueForColumn(b, col) ?? "");
+      const av = String(getValueForColumn(a, col) ?? "").trim();
+      const bv = String(getValueForColumn(b, col) ?? "").trim();
 
-      const an = parseFloat(av);
-      const bn = parseFloat(bv);
-      const bothNumeric = !isNaN(an) && !isNaN(bn);
+      const aDate = parseSortableDate(av);
+      const bDate = parseSortableDate(bv);
 
-      const cmp = bothNumeric ? an - bn : av.localeCompare(bv);
+      let cmp;
+      if (aDate !== null && bDate !== null) {
+        cmp = aDate - bDate;
+      } else if (NUMERIC_RE.test(av) && NUMERIC_RE.test(bv)) {
+        cmp = parseFloat(av) - parseFloat(bv);
+      } else {
+        cmp = av.localeCompare(bv);
+      }
+
       return sortDir === "asc" ? cmp : -cmp;
     });
   }, [filteredRows, sortCol, sortDir, columns]);

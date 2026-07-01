@@ -16,8 +16,13 @@ const computer_statuses = [
   "Lost",
 ];
 
+const SIMPLE_STATUS_TYPES = new Set([
+  "staff laptop", "staff computer", "radio",
+  "mobile phone", "ip phone", "staff ipad", "laptop charger"
+]);
+
 const hasSimpleStatuses = (itemType) =>
-  itemType === "Staff laptop" || itemType === "Staff computer" || itemType === "Radio" || itemType === "Mobile phone" || itemType === "IP phone" || itemType === "Staff ipad";
+  SIMPLE_STATUS_TYPES.has(itemType?.toLowerCase());
 
 const mapStatusForDisplay = (status, itemType) => {
   if (!hasSimpleStatuses(itemType)) return status;

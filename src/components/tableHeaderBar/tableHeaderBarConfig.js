@@ -90,6 +90,18 @@ const HEADER_UI_CONFIG = {
     showSyncWithMicrosoft: false,
     showIsWorking: true,
   },
+  "LAPTOP CHARGERS": {
+    showLocation: false,
+    showAddNewItem: true,
+    showSyncWithMicrosoft: false,
+    showIsWorking: true,
+  },
+  "STAFF IPADS": {
+    showLocation: false,
+    showAddNewItem: false,
+    showSyncWithMicrosoft: false,
+    showIsWorking: true,
+  },
 };
 
 export default HEADER_UI_CONFIG;

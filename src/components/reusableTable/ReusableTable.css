@@ -74,6 +74,16 @@
   margin: 5px auto;
   overflow-x: auto;
   border-radius: 8px;
+  scrollbar-width: auto;
+}
+
+/* On wide screens (bigger than a 13" laptop) let the table grow past
+   1550px to use the extra space instead of scrolling horizontally */
+@media (min-width: 1700px) {
+  .TableWrapper,
+  .BodyTitle {
+    max-width: 96vw;
+  }
 }
 
 .ScrollableTable {
@@ -89,6 +99,7 @@
   padding: 10px;
   border-bottom: 1px solid #f6f7f9;
   text-align: left;
+  white-space: nowrap;
 }
 
 .ScrollableTable th {

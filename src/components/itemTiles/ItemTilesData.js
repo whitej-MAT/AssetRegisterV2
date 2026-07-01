@@ -11,4 +11,5 @@ export const equipmentMainTiles = [
   "Signed Staff",
   "Unsigned Staff",
   "Radios",
+  "Laptop Chargers",
 ];
