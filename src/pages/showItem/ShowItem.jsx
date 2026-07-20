@@ -60,6 +60,11 @@ const { data: devicesOwned } = useApiData({
   const devicesOwnedHeadings = devicesOwned?.tableHeaders ?? [];
   const devicesOwnedRows = devicesOwned?.searchableItems?.items ?? [];
 
+  const isStudentDevice =
+    deviceType === "Student laptop" || deviceType === "Student computer";
+  const lastSignInHeadings = ["Time", "User"];
+  const lastSignInRows = data?.lastSignIn ?? [];
+
   const { dataPUWithNone, staffByEmail } = useStaffList();
 
   const locationsEndpoint = useMemo(() => {
@@ -491,6 +496,17 @@ const handleSync = async () => {
           globalSearch={""}
         />
 
+        )}
+
+        {isStudentDevice && (
+          <div className="LastSignInSection">
+            <h2 className="LastSignInTitle">Last sign-in history</h2>
+            <ReusableTable
+              tableRows={lastSignInRows}
+              tableHeadings={lastSignInHeadings}
+              globalSearch={""}
+            />
+          </div>
         )}
       </div>
     </>

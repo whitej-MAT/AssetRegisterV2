@@ -118,6 +118,12 @@ input[type="checkbox"].formInput {
     align-items: center;
 }
 
+.LastSignInTitle {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0 0 8px;
+}
+
 .PreviousUsersBubble {
     position: relative;
     display: inline-flex;
